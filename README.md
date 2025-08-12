@@ -85,6 +85,34 @@ if (Input.action_released("down")) {
 }
 ```
 
+## 5 - Add touch control
+
+To add a custom touch control, follow these steps:
+
+1. **Create a new object** that inherits from `obj_touch_parent`.
+2. In **Variable Definitions**, set the variable `touch_name` to the touch identifier you assigned to an action in `Input.action_set_input()`.  
+   For example:
+   ```GML
+   touch_name = "left";
+3. In Create event call
+   ```GML
+   event_inherited();
+   ```
+4. Optionally, implement custom behavior in the following functions:
+   ```GML
+    pressed = function (_touch_id, _touch_x, _touch_y) {
+        // Called when the touch starts
+    }
+    
+    down = function (_touch_id, _touch_x, _touch_y) {
+        // Called while the touch is held
+    }
+    
+    released = function (_touch_id, _touch_x, _touch_y) {
+        // Called when the touch ends
+    }
+   ```
+
 # How it works
 
 - action_add(name): Registers a new action.
@@ -98,6 +126,6 @@ if (Input.action_released("down")) {
 - Menu navigation (mouse wheel, arrow keys, joystick)
 - Multi-device multiplayer
 
-#Notes
+# Notes
 - Gamepad axis mapping supports positive and negative directions.
 - Touch input uses named areas or gestures (e.g., "left").
