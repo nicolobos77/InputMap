@@ -11,15 +11,15 @@ if (Input.action_pressed("jump")) { /* Do something */ }
 # Key Features:
 - Map multiple devices to a single action.
 - Supports:
-- - Keyboard
-- - Mouse
-- - Gamepad (buttons and axis)
-- - Touch
+    - Keyboard
+    - Mouse
+    - Gamepad (buttons and axis)
+    - Touch
 - Query input with:
-- - Input.action_pressed(name)
-- - Input.action_released(name)
-- - Input.action_down(name)
-- - Easy setup and clean code.
+    - Input.action_pressed(name)
+    - Input.action_released(name)
+    - Input.action_down(name)
+    - Easy setup and clean code.
 
 # How to Use:
 
