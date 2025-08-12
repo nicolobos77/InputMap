@@ -1,0 +1,1 @@
+Input.action_gamepad_async(async_load);
