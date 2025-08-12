@@ -5,7 +5,8 @@
 Instead of checking each device separately, you can query the state of an action using a single string, similar to how GameMaker handles keyboard input.  
 For example:
 ```gml
-if (Input.action_pressed("jump")) { /* Do something */ }```
+if (Input.action_pressed("jump")) { /* Do something */ }
+```
 
 # Key Features:
 - Map multiple devices to a single action.
