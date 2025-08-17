@@ -3,7 +3,11 @@ function InputMap(_deadzone = 0.2) constructor
 	enum MB_WHEELS { UP = 6, DOWN = 7};
 	enum STATES { NONE, PRESSED, DOWN, RELEASED};
 	#macro MAX_TOUCH_DEVICES 10
-	fingers = array_create(MAX_TOUCH_DEVICES,{"STATE" : STATES.NONE, "INSTANCE" : noone, "X" : 0, "Y" : 0});
+	fingers = [];
+	for(var _i = 0; _i < MAX_TOUCH_DEVICES; _i++)
+	{
+		fingers[_i] = {"STATE" : STATES.NONE, "INSTANCE" : noone, "X" : 0, "Y" : 0};
+	}
 	
 	actions = {};
 	actions_names = [];
@@ -365,152 +369,7 @@ function InputMap(_deadzone = 0.2) constructor
 			gamepad_main = undefined;	
 		}
 	}
-	
-	/// @func touch_begin_step()
-	/// @desc Manages touch
-	function touch_begin_step()
-	{
-		var _ind = 0;
-		while(_ind < array_length(captured_touches))
-		{
-			var _touch = captured_touches[_ind];
-			var _tid = struct_get(_touch,"FINGER");
-			var _tname = struct_get(_touch,"NAME");
-			if(!is_undefined(_tid) && !is_undefined(_tname))
-			{
-				var _down = device_mouse_check_button(_tid,mb_left);
-				var _released = device_mouse_check_button_released(_tid,mb_left);
-				
-				var _touch_x = device_mouse_x_to_gui(_tid);
-				var _touch_y = device_mouse_y_to_gui(_tid);
-				fingers[_tid].X = _touch_x;
-				fingers[_tid].Y = _touch_y;
-				var _ui_at_pos = instance_position(_touch_x,_touch_y,obj_touch_parent);
-				var _instance = fingers[_tid].INSTANCE;
-				var _state = fingers[_tid].STATE;
-				if(_ui_at_pos != noone && _instance == _ui_at_pos)
-				{
-					if(_released)
-					{
-						fingers[_tid].STATE = STATES.RELEASED;
-						_ui_at_pos.touch_released(_tid,_tname,_touch_x,_touch_y);
-					}
-					else if(_down)
-					{
-						fingers[_tid].STATE = STATES.DOWN;
-						_ui_at_pos.touch_down(_tid,_tname,_touch_x,_touch_y);
-					}
-					else
-					{
-						fingers[_tid].STATE = STATES.NONE;
-						array_delete(captured_touches,_ind,1);
-						continue;
-					}
-				}
-				else if(_instance != noone)
-				{
-					var _name = _instance.touch_name;
-					fingers[_tid].STATE = STATES.RELEASED;
-					_instance.touch_released(_tid,_name,_touch_x,_touch_y);
-					fingers[_tid].INSTANCE = noone;
-				}
-			}
-			else
-			{
-				array_delete(captured_touches,_ind,1);
-				continue;
-			}
-			_ind++;
-		}
 		
-		for(var _i = 0; _i < MAX_TOUCH_DEVICES; _i++)
-		{
-			var _pressed = device_mouse_check_button_pressed(_i, mb_left);
-			if(_pressed)
-			{
-				var _touch_x = device_mouse_x_to_gui(_i);
-				var _touch_y = device_mouse_y_to_gui(_i);
-				fingers[_i].X = _touch_x;
-				fingers[_i].Y = _touch_y;
-			
-				var _ui_at_pos = instance_position(_touch_x,_touch_y,obj_touch_parent);
-				var _instance = fingers[_i].INSTANCE;
-				var _state = fingers[_i].STATE;
-				if(_ui_at_pos != noone)
-				{
-					var _name = _ui_at_pos.touch_name;
-					if((_state == STATES.NONE || _state == STATES.RELEASED))
-					{
-						if(_instance != _ui_at_pos)
-						{
-							fingers[_i].INSTANCE = _ui_at_pos;
-							_instance = _ui_at_pos;
-						}
-						fingers[_i].STATE = STATES.PRESSED;
-						_ui_at_pos.touch_pressed(_i,_name,_touch_x,_touch_y);
-						if(!array_contains(captured_touches,_name))
-						{
-							array_push(captured_touches,{"FINGER": _i,"NAME" : _name});	
-						}
-					}
-				}
-			}
-		}
-		
-		/*for(var _i = 0; _i < MAX_TOUCH_DEVICES; _i++)
-		{
-			var _touch_x = device_mouse_x_to_gui(_i);
-			var _touch_y = device_mouse_y_to_gui(_i);
-			fingers[_i].X = _touch_x;
-			fingers[_i].Y = _touch_y;
-			
-			var _ui_at_pos = instance_position(_touch_x,_touch_y,obj_touch_parent);
-			var _instance = fingers[_i].INSTANCE;
-			var _state = fingers[_i].STATE;
-			
-			var _pressed = device_mouse_check_button_pressed(_i, mb_left);
-			var _down = device_mouse_check_button(_i, mb_left);
-			var _released = device_mouse_check_button_released(_i, mb_left);
-			
-			if(_ui_at_pos != noone)
-			{
-				var _name = _ui_at_pos.touch_name;
-				if(_pressed && (_state == STATES.NONE || _state == STATES.RELEASED))
-				{
-					if(_instance != _ui_at_pos)
-					{
-						fingers[_i].INSTANCE = _ui_at_pos;
-						_instance = _ui_at_pos;
-					}
-					fingers[_i].STATE = STATES.PRESSED;
-					_ui_at_pos.touch_pressed(_i,_name,_touch_x,_touch_y);
-					if(!array_contains(captured_touches,_name))
-					{
-						array_push(captured_touches,_name);	
-					}
-				}
-				else if(_down && (_state == STATES.PRESSED || _state == STATES.DOWN))
-				{
-					fingers[_i].STATE = STATES.DOWN;
-					_ui_at_pos.touch_down(_i,_name,_touch_x,_touch_y);
-				}
-				else if(_released && _state == STATES.DOWN)
-				{
-					fingers[_i].STATE = STATES.RELEASED;
-					_ui_at_pos.touch_released(_i,_name,_touch_x,_touch_y);
-					fingers[_i].INSTANCE = noone;
-				}
-			}
-			else if(_instance != noone && ((_down || _pressed) && _state != STATES.RELEASED))
-			{
-				var _name = _instance.touch_name;
-				fingers[_i].STATE = STATES.RELEASED;
-				_instance.touch_released(_i,_name,_touch_x,_touch_y);
-				fingers[_i].INSTANCE = noone;
-			}
-		}*/
-	}
-	
 	/// @func action_begin_step()
 	/// @desc Get input, manages it, and updates actions states and values
 	function action_begin_step()
@@ -749,6 +608,97 @@ function InputMap(_deadzone = 0.2) constructor
 					if(struct_get(gamepad_states,string(-_axis)) != undefined)
 					{
 						update_gamepad_axis(string(-_axis),-_val);
+					}
+				}
+			}
+		}
+		#endregion
+		
+		#region Touch
+		_ind = 0;
+		while(_ind < array_length(captured_touches))
+		{
+			var _touch = captured_touches[_ind];
+			var _tid = struct_get(_touch,"FINGER");
+			var _tname = struct_get(_touch,"NAME");
+			if(!is_undefined(_tid) && !is_undefined(_tname))
+			{
+				var _down = device_mouse_check_button(_tid,mb_left);
+				var _released = device_mouse_check_button_released(_tid,mb_left);
+				
+				var _touch_x = device_mouse_x_to_gui(_tid);
+				var _touch_y = device_mouse_y_to_gui(_tid);
+				fingers[_tid].X = _touch_x;
+				fingers[_tid].Y = _touch_y;
+				var _ui_at_pos = instance_position(_touch_x,_touch_y,obj_touch_parent);
+				var _instance = fingers[_tid].INSTANCE;
+				var _state = fingers[_tid].STATE;
+				if(_ui_at_pos != noone && _instance == _ui_at_pos)
+				{
+					if(_released)
+					{
+						fingers[_tid].STATE = STATES.RELEASED;
+						_ui_at_pos.touch_released(_tid,_tname,_touch_x,_touch_y);
+					}
+					else if(_down)
+					{
+						fingers[_tid].STATE = STATES.DOWN;
+						_ui_at_pos.touch_down(_tid,_tname,_touch_x,_touch_y);
+					}
+					else
+					{
+						fingers[_tid].STATE = STATES.NONE;
+						fingers[_tid].INSTANCE = noone;
+						array_delete(captured_touches,_ind,1);
+						continue;
+					}
+				}
+				else if(_instance != noone)
+				{
+					var _name = _instance.touch_name;
+					fingers[_tid].STATE = STATES.RELEASED;
+					fingers[_tid].INSTANCE = noone;
+					_instance.touch_released(_tid,_name,_touch_x,_touch_y);
+					array_delete(captured_touches,_ind,1);
+					continue;
+				}
+			}
+			else
+			{
+				array_delete(captured_touches,_ind,1);
+				continue;
+			}
+			_ind++;
+		}
+		
+		for(var _i = 0; _i < MAX_TOUCH_DEVICES; _i++)
+		{
+			var _pressed = device_mouse_check_button_pressed(_i, mb_left);
+			if(_pressed)
+			{
+				var _touch_x = device_mouse_x_to_gui(_i);
+				var _touch_y = device_mouse_y_to_gui(_i);
+				fingers[_i].X = _touch_x;
+				fingers[_i].Y = _touch_y;
+			
+				var _ui_at_pos = instance_position(_touch_x,_touch_y,obj_touch_parent);
+				var _instance = fingers[_i].INSTANCE;
+				var _state = fingers[_i].STATE;
+				if(_ui_at_pos != noone)
+				{
+					var _name = _ui_at_pos.touch_name;
+					if(_state == STATES.NONE || _state == STATES.RELEASED)
+					{
+						if(_instance != _ui_at_pos)
+						{
+							fingers[_i].INSTANCE = _ui_at_pos;
+						}
+						fingers[_i].STATE = STATES.PRESSED;
+						_ui_at_pos.touch_pressed(_i,_name,_touch_x,_touch_y);
+						if(!array_contains(captured_touches,_name))
+						{
+							array_push(captured_touches,{"FINGER": _i,"NAME" : _name});	
+						}
 					}
 				}
 			}

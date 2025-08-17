@@ -1,5 +1,5 @@
-touch_id = -1;
-value = 0;
+//touch_id = -1;
+//value = 0;
 pressed = function(_touch_id, _touch_x, _touch_y){ };
 down = function(_touch_id, _touch_x, _touch_y){ };
 released = function(_touch_id, _touch_x, _touch_y){ };
